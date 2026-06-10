@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Weekly Quests</title>
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #18181f;
+    --surface2: #22222c;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0eef8;
+    --muted: #9592a8;
+    --accent: #7c6ff7;
+    --accent2: #a89ef7;
+    --accent-bg: rgba(124,111,247,0.12);
+    --accent-border: rgba(124,111,247,0.3);
+    --gold: #e8b94b;
+    --gold-bg: rgba(232,185,75,0.1);
+    --danger: #e2574a;
+    --success: #3db87a;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .nav-logo {
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-gem {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  .nav-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .nav-btn:hover { color: var(--text); border-color: var(--border2); background: rgba(255,255,255,0.05); }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── TEAM VIEW ── */
+  .team-hero {
+    max-width: 720px;
+    margin: 4rem auto 2rem;
+    padding: 0 1.5rem;
+    text-align: center;
+  }
+
+  .week-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    color: var(--accent2);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 1.2rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .team-hero h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.15;
+    margin-bottom: 0.6rem;
+  }
+
+  .team-hero p {
+    color: var(--muted);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  /* COUNTDOWN */
+  .countdown-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .countdown-unit {
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.9rem 1.2rem;
+    min-width: 72px;
+  }
+
+  .countdown-num {
+    font-size: 1.8rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent2);
+    line-height: 1;
+  }
+
+  .countdown-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .countdown-sep {
+    font-size: 1.5rem;
+    color: var(--muted);
+    margin-top: -6px;
+  }
+
+  /* QUEST CARDS */
+  .quests-grid {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .locked-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .lock-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+  }
+
+  .locked-state h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+
+  .locked-state p { color: var(--muted); font-size: 0.95rem; }
+
+  .section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .quest-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.4rem;
+    transition: border-color 0.15s;
+  }
+  .quest-card:hover { border-color: var(--border2); }
+
+  .quest-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .quest-title {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .quest-tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tag-quest { background: var(--accent-bg); color: var(--accent2); border: 1px solid var(--accent-border); }
+  .tag-question { background: var(--gold-bg); color: var(--gold); border: 1px solid rgba(232,185,75,0.25); }
+
+  .quest-desc {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  /* ── ADMIN ── */
+  .admin-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  .admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+
+  .admin-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 2rem;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .tab.active {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border2);
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* FORM */
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .form-card h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    color: var(--text);
+  }
+
+  .form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  input[type="text"], input[type="password"], textarea, select {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+
+  select option { background: #1a1a24; }
+
+  .btn {
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: inherit;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #6a5ee0; }
+  .btn-danger { background: transparent; border: 1px solid rgba(226,87,74,0.3); color: var(--danger); }
+  .btn-danger:hover { background: rgba(226,87,74,0.1); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-ghost { background: var(--surface2); border: 1px solid var(--border2); color: var(--muted); }
+  .btn-ghost:hover { color: var(--text); }
+
+  /* ITEMS LIST */
+  .item-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .item-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .item-row-body { flex: 1; }
+
+  .item-row-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .item-row-desc { font-size: 0.85rem; color: var(--muted); }
+
+  .item-row-meta {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 6px; flex-wrap: wrap;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .badge-week { background: rgba(61,184,122,0.1); color: var(--success); border: 1px solid rgba(61,184,122,0.2); }
+  .badge-type-quest { background: var(--accent-bg); color: var(--accent2); border: 1px solid var(--accent-border); }
+  .badge-type-question { background: var(--gold-bg); color: var(--gold); border: 1px solid rgba(232,185,75,0.25); }
+  .badge-inactive { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border); }
+
+  .item-actions { display: flex; gap: 6px; align-items: flex-start; flex-shrink: 0; }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+    background: var(--surface);
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+  }
+
+  /* LOGIN */
+  .login-wrap {
+    max-width: 380px;
+    margin: 6rem auto;
+    padding: 0 1.5rem;
+  }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+  }
+
+  .login-card h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+
+  .login-card p {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .error-msg {
+    background: rgba(226,87,74,0.1);
+    border: 1px solid rgba(226,87,74,0.25);
+    color: var(--danger);
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    margin-top: 0.75rem;
+  }
+
+  /* SETTINGS */
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-label { font-size: 0.9rem; font-weight: 500; }
+  .settings-desc { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 100;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* WEEK SELECTOR */
+  .week-selector {
+    display: flex; align-items: center; gap: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .week-selector label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .week-selector select { max-width: 260px; }
+
+  /* REVEAL PROGRESS */
+  .reveal-info {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .reveal-card {
+    flex: 1;
+    min-width: 140px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+  }
+  .reveal-card .num { font-size: 1.6rem; font-weight: 700; color: var(--accent2); }
+  .reveal-card .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  @media (max-width: 600px) {
+    .team-hero h1 { font-size: 1.8rem; }
+    .form-row { flex-direction: column; }
+    nav { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="logo-gem">⚡</div>
+    Weekly Quests
+  </div>
+  <button class="nav-btn" id="adminNavBtn" onclick="showAdminGate()">
+    🔐 Admin
+  </button>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- TEAM PAGE -->
+<div class="page active" id="teamPage">
+  <div class="team-hero">
+    <div class="week-badge">⚡ Week <span id="currentWeekNum">--</span></div>
+    <h1>This Week's<br>Quests & Questions</h1>
+    <p id="heroSubtitle">Loading...</p>
+
+    <div class="countdown-bar" id="countdownBar">
+      <div class="countdown-unit">
+        <div class="countdown-num" id="cdDays">--</div>
+        <div class="countdown-label">Days</div>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-unit">
+        <div class="countdown-num" id="cdHours">--</div>
+        <div class="countdown-label">Hours</div>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-unit">
+        <div class="countdown-num" id="cdMins">--</div>
+        <div class="countdown-label">Mins</div>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-unit">
+        <div class="countdown-num" id="cdSecs">--</div>
+        <div class="countdown-label">Secs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quests-grid" id="questsGrid">
+    <div class="locked-state">
+      <div class="lock-icon">🔒</div>
+      <h2>Loading...</h2>
+      <p>Please wait while we fetch this week's content.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN GATE (login) -->
+<div class="page" id="loginPage">
+  <div class="login-wrap">
+    <div class="login-card">
+      <h2>Admin Access</h2>
+      <p>Enter your password to manage quests and questions.</p>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginInput" placeholder="Enter password..." onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div style="margin-top:1rem; display:flex; gap:8px;">
+        <button class="btn btn-primary" onclick="doLogin()">Sign in</button>
+        <button class="btn btn-ghost" onclick="showPage('teamPage')">Cancel</button>
+      </div>
+      <div id="loginError" style="display:none" class="error-msg">Incorrect password. Try again.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="page" id="adminPage">
+  <div class="admin-wrap">
+    <div class="admin-header">
+      <h2>Admin Panel</h2>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Sign out</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('tabItems', this)">Quests & Questions</button>
+      <button class="tab" onclick="switchTab('tabSchedule', this)">Schedule</button>
+      <button class="tab" onclick="switchTab('tabSettings', this)">Settings</button>
+    </div>
+
+    <!-- TAB: Items -->
+    <div class="panel active" id="tabItems">
+
+      <div class="form-card">
+        <h3 id="formTitle">➕ Add New Item</h3>
+        <input type="hidden" id="editId">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type</label>
+            <select id="itemType">
+              <option value="quest">🗡 Quest (Task)</option>
+              <option value="question">💬 Question</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Assigned Week</label>
+            <select id="itemWeek" style="max-width:100%"></select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label>Title</label>
+          <input type="text" id="itemTitle" placeholder="e.g. Share your biggest win this week...">
+        </div>
+        <div class="form-group" style="margin-bottom:1.25rem">
+          <label>Description (optional)</label>
+          <textarea id="itemDesc" placeholder="More details or context for the team..."></textarea>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary" onclick="saveItem()">Save Item</button>
+          <button class="btn btn-ghost" onclick="resetForm()" id="cancelEditBtn" style="display:none">Cancel Edit</button>
+        </div>
+      </div>
+
+      <p class="section-title">All Items</p>
+      <div class="item-list" id="itemList">
+        <div class="empty-state">No items yet. Add your first quest or question above.</div>
+      </div>
+    </div>
+
+    <!-- TAB: Schedule -->
+    <div class="panel" id="tabSchedule">
+      <div class="reveal-info">
+        <div class="reveal-card">
+          <div class="num" id="statTotal">0</div>
+          <div class="lbl">Total items</div>
+        </div>
+        <div class="reveal-card">
+          <div class="num" id="statThisWeek">0</div>
+          <div class="lbl">This week</div>
+        </div>
+        <div class="reveal-card">
+          <div class="num" id="statVisible">0</div>
+          <div class="lbl">Currently visible</div>
+        </div>
+      </div>
+
+      <div class="week-selector">
+        <label>Preview week:</label>
+        <select id="previewWeekSelect" onchange="renderSchedulePreview()"></select>
+      </div>
+
+      <p class="section-title">Items for selected week</p>
+      <div class="item-list" id="schedulePreviewList">
+        <div class="empty-state">Select a week to preview its items.</div>
+      </div>
+    </div>
+
+    <!-- TAB: Settings -->
+    <div class="panel" id="tabSettings">
+      <div class="form-card">
+        <h3>⚙️ Reveal Settings</h3>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Reveal day</div>
+            <div class="settings-desc">Which day of the week quests become visible to the team</div>
+          </div>
+          <select id="revealDay" style="width:140px" onchange="saveSetting('revealDay', this.value)">
+            <option value="0">Sunday</option>
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Saturday</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Team name</div>
+            <div class="settings-desc">Shown in the header of the team view</div>
+          </div>
+          <input type="text" id="teamName" style="width:180px" placeholder="My Team" oninput="saveSetting('teamName', this.value)">
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3>🔐 Change Password</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="password" id="newPw" placeholder="New password...">
+          </div>
+          <div class="form-group">
+            <label>Confirm</label>
+            <input type="password" id="confirmPw" placeholder="Repeat password...">
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:0.5rem" onclick="changePassword()">Update Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ──────────────── STATE ──────────────── */
+const KEY_ITEMS    = 'wq_items';
+const KEY_SETTINGS = 'wq_settings';
+const KEY_PW       = 'wq_pw';
+const DEFAULT_PW   = 'admin123';
+
+let items    = [];
+let settings = { revealDay: 5, teamName: 'Our Team' };
+let adminLoggedIn = false;
+
+/* ──────────────── STORAGE ──────────────── */
+async function load() {
+  try {
+    const [ir, sr, pr] = await Promise.all([
+      window.storage.get(KEY_ITEMS, true),
+      window.storage.get(KEY_SETTINGS, true),
+      window.storage.get(KEY_PW, true),
+    ]);
+    if (ir) items = JSON.parse(ir.value);
+    if (sr) settings = { ...settings, ...JSON.parse(sr.value) };
+    if (!pr) await window.storage.set(KEY_PW, DEFAULT_PW, true);
+  } catch(e) {
+    // first run
+    await window.storage.set(KEY_PW, DEFAULT_PW, true);
+  }
+  renderTeam();
+}
+
+async function saveItems() {
+  await window.storage.set(KEY_ITEMS, JSON.stringify(items), true);
+}
+
+async function saveSetting(key, value) {
+  settings[key] = isNaN(value) ? value : Number(value);
+  await window.storage.set(KEY_SETTINGS, JSON.stringify(settings), true);
+  renderTeam();
+}
+
+/* ──────────────── UTILS ──────────────── */
+function getWeekNum(d) {
+  const date = new Date(d);
+  date.setHours(0,0,0,0);
+  date.setDate(date.getDate() + 4 - (date.getDay()||7));
+  const yearStart = new Date(date.getFullYear(), 0, 1);
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+}
+
+function currentWeekKey() {
+  return `${new Date().getFullYear()}-W${String(getWeekNum(new Date())).padStart(2,'0')}`;
+}
+
+function weekKeyLabel(key) {
+  const [y, w] = key.split('-W');
+  return `Week ${w}, ${y}`;
+}
+
+function genWeekOptions(count) {
+  const opts = [];
+  const now = new Date();
+  for (let i = -2; i <= count; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + i * 7);
+    const wn = getWeekNum(d);
+    const yr = d.getFullYear();
+    const key = `${yr}-W${String(wn).padStart(2,'0')}`;
+    if (!opts.find(o => o.key === key)) {
+      opts.push({ key, label: weekKeyLabel(key) });
+    }
+  }
+  return opts;
+}
+
+function isRevealed(weekKey) {
+  const [yr, wn] = weekKey.split('-W').map(Number);
+  const now = new Date();
+  const nowWk = getWeekNum(now);
+  const nowYr = now.getFullYear();
+  if (yr < nowYr) return true;
+  if (yr > nowYr) return false;
+  if (wn < nowWk) return true;
+  if (wn > nowWk) return false;
+  // same week: check reveal day
+  const rd = Number(settings.revealDay);
+  return now.getDay() >= rd;
+}
+
+function getNextReveal() {
+  const now = new Date();
+  const rd = Number(settings.revealDay);
+  let diff = rd - now.getDay();
+  if (diff <= 0) diff += 7;
+  const target = new Date(now);
+  target.setDate(now.getDate() + diff);
+  target.setHours(0,0,0,0);
+  return target;
+}
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+/* ──────────────── COUNTDOWN ──────────────── */
+function updateCountdown() {
+  const cwk = currentWeekKey();
+  const revealed = isRevealed(cwk);
+  const items4week = items.filter(i => i.week === cwk);
+
+  if (revealed || items4week.length === 0) {
+    document.getElementById('countdownBar').style.display = 'none';
+    return;
+  }
+  document.getElementById('countdownBar').style.display = 'flex';
+
+  const target = getNextReveal();
+  const diff = target - new Date();
+  if (diff <= 0) { renderTeam(); return; }
+
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+
+  document.getElementById('cdDays').textContent  = pad(d);
+  document.getElementById('cdHours').textContent = pad(h);
+  document.getElementById('cdMins').textContent  = pad(m);
+  document.getElementById('cdSecs').textContent  = pad(s);
+}
+
+/* ──────────────── TEAM VIEW ──────────────── */
+function renderTeam() {
+  const cwk = currentWeekKey();
+  const [, wn] = cwk.split('-W');
+  document.getElementById('currentWeekNum').textContent = wn;
+  document.getElementById('heroSubtitle').textContent =
+    `Challenges & questions for ${settings.teamName || 'the team'}`;
+
+  const grid = document.getElementById('questsGrid');
+  const revealed = isRevealed(cwk);
+  const weekItems = items.filter(i => i.week === cwk);
+
+  if (!revealed) {
+    document.getElementById('countdownBar').style.display = 'flex';
+    grid.innerHTML = `
+      <div class="locked-state">
+        <div class="lock-icon">🔒</div>
+        <h2>Not yet revealed</h2>
+        <p>This week's quests unlock on ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][settings.revealDay]}.<br>Check back then!</p>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('countdownBar').style.display = 'none';
+
+  if (weekItems.length === 0) {
+    grid.innerHTML = `<div class="locked-state">
+      <div class="lock-icon">📭</div>
+      <h2>Nothing scheduled</h2>
+      <p>No quests or questions have been added for this week yet.</p>
+    </div>`;
+    return;
+  }
+
+  const quests = weekItems.filter(i => i.type === 'quest');
+  const questions = weekItems.filter(i => i.type === 'question');
+  let html = '';
+
+  if (quests.length) {
+    html += `<p class="section-title">🗡 Quests this week</p>`;
+    quests.forEach(q => {
+      html += `<div class="quest-card">
+        <div class="quest-card-header">
+          <div class="quest-title">${esc(q.title)}</div>
+          <span class="quest-tag tag-quest">Quest</span>
+        </div>
+        ${q.desc ? `<p class="quest-desc">${esc(q.desc)}</p>` : ''}
+      </div>`;
+    });
+  }
+
+  if (questions.length) {
+    html += `<p class="section-title" style="margin-top:1.5rem">💬 Questions this week</p>`;
+    questions.forEach(q => {
+      html += `<div class="quest-card">
+        <div class="quest-card-header">
+          <div class="quest-title">${esc(q.title)}</div>
+          <span class="quest-tag tag-question">Question</span>
+        </div>
+        ${q.desc ? `<p class="quest-desc">${esc(q.desc)}</p>` : ''}
+      </div>`;
+    });
+  }
+
+  grid.innerHTML = html;
+}
+
+/* ──────────────── ADMIN: ITEMS ──────────────── */
+function populateWeekSelects() {
+  const opts = genWeekOptions(8);
+  const cwk = currentWeekKey();
+
+  ['itemWeek', 'previewWeekSelect'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = opts.map(o =>
+      `<option value="${o.key}" ${o.key===cwk?'selected':''}>${o.label}${o.key===cwk?' (current)':''}</option>`
+    ).join('');
+  });
+}
+
+function renderItemList() {
+  const el = document.getElementById('itemList');
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state">No items yet. Add your first quest or question above.</div>';
+    return;
+  }
+  const cwk = currentWeekKey();
+  el.innerHTML = [...items].reverse().map(item => `
+    <div class="item-row">
+      <div class="item-row-body">
+        <div class="item-row-title">
+          ${esc(item.title)}
+        </div>
+        ${item.desc ? `<div class="item-row-desc">${esc(item.desc)}</div>` : ''}
+        <div class="item-row-meta">
+          <span class="badge ${item.type==='quest'?'badge-type-quest':'badge-type-question'}">
+            ${item.type==='quest'?'🗡 Quest':'💬 Question'}
+          </span>
+          <span class="badge badge-week">${weekKeyLabel(item.week)}</span>
+          ${item.week===cwk ? '<span class="badge badge-week">📍 This week</span>' : ''}
+          ${isRevealed(item.week) ? '<span class="badge" style="background:rgba(61,184,122,0.1);color:#3db87a;border:1px solid rgba(61,184,122,0.2)">✓ Visible</span>' : '<span class="badge badge-inactive">🔒 Locked</span>'}
+        </div>
+      </div>
+      <div class="item-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editItem('${item.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSchedulePreview() {
+  const wk = document.getElementById('previewWeekSelect')?.value;
+  if (!wk) return;
+  const filtered = items.filter(i => i.week === wk);
+  const el = document.getElementById('schedulePreviewList');
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty-state">No items for this week.</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(item => `
+    <div class="item-row">
+      <div class="item-row-body">
+        <div class="item-row-title">${esc(item.title)}</div>
+        ${item.desc ? `<div class="item-row-desc">${esc(item.desc)}</div>` : ''}
+        <div class="item-row-meta">
+          <span class="badge ${item.type==='quest'?'badge-type-quest':'badge-type-question'}">
+            ${item.type==='quest'?'🗡 Quest':'💬 Question'}
+          </span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // stats
+  document.getElementById('statTotal').textContent = items.length;
+  document.getElementById('statThisWeek').textContent = items.filter(i => i.week === currentWeekKey()).length;
+  document.getElementById('statVisible').textContent = items.filter(i => isRevealed(i.week)).length;
+}
+
+function saveItem() {
+  const title = document.getElementById('itemTitle').value.trim();
+  if (!title) { toast('Please enter a title.'); return; }
+
+  const id = document.getElementById('editId').value;
+  const payload = {
+    id: id || Date.now().toString(36),
+    type: document.getElementById('itemType').value,
+    week: document.getElementById('itemWeek').value,
+    title,
+    desc: document.getElementById('itemDesc').value.trim(),
+  };
+
+  if (id) {
+    const idx = items.findIndex(i => i.id === id);
+    if (idx !== -1) items[idx] = payload;
+  } else {
+    items.push(payload);
+  }
+
+  saveItems();
+  renderItemList();
+  renderTeam();
+  renderSchedulePreview();
+  resetForm();
+  toast(id ? 'Item updated!' : 'Item added!');
+}
+
+function editItem(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('editId').value = item.id;
+  document.getElementById('itemType').value = item.type;
+  document.getElementById('itemWeek').value = item.week;
+  document.getElementById('itemTitle').value = item.title;
+  document.getElementById('itemDesc').value = item.desc || '';
+  document.getElementById('formTitle').textContent = '✏️ Edit Item';
+  document.getElementById('cancelEditBtn').style.display = 'inline-flex';
+  document.getElementById('itemTitle').focus();
+}
+
+function deleteItem(id) {
+  if (!confirm('Delete this item?')) return;
+  items = items.filter(i => i.id !== id);
+  saveItems();
+  renderItemList();
+  renderTeam();
+  toast('Item deleted.');
+}
+
+function resetForm() {
+  document.getElementById('editId').value = '';
+  document.getElementById('itemTitle').value = '';
+  document.getElementById('itemDesc').value = '';
+  document.getElementById('itemType').value = 'quest';
+  document.getElementById('formTitle').textContent = '➕ Add New Item';
+  document.getElementById('cancelEditBtn').style.display = 'none';
+  populateWeekSelects();
+}
+
+/* ──────────────── ADMIN: AUTH ──────────────── */
+function showAdminGate() {
+  if (adminLoggedIn) { showPage('adminPage'); return; }
+  showPage('loginPage');
+  setTimeout(() => document.getElementById('loginInput').focus(), 100);
+}
+
+async function doLogin() {
+  const pw = document.getElementById('loginInput').value;
+  let stored = DEFAULT_PW;
+  try { const r = await window.storage.get(KEY_PW, true); if (r) stored = r.value; } catch(e){}
+  if (pw === stored) {
+    adminLoggedIn = true;
+    document.getElementById('loginInput').value = '';
+    document.getElementById('loginError').style.display = 'none';
+    showPage('adminPage');
+    loadSettings();
+    renderItemList();
+    renderSchedulePreview();
+    populateWeekSelects();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+function logout() {
+  adminLoggedIn = false;
+  showPage('teamPage');
+  document.getElementById('adminNavBtn').textContent = '🔐 Admin';
+}
+
+async function changePassword() {
+  const np = document.getElementById('newPw').value;
+  const cp = document.getElementById('confirmPw').value;
+  if (!np) { toast('Enter a new password.'); return; }
+  if (np !== cp) { toast('Passwords do not match.'); return; }
+  await window.storage.set(KEY_PW, np, true);
+  document.getElementById('newPw').value = '';
+  document.getElementById('confirmPw').value = '';
+  toast('Password updated!');
+}
+
+/* ──────────────── ADMIN: SETTINGS ──────────────── */
+function loadSettings() {
+  document.getElementById('revealDay').value = settings.revealDay;
+  document.getElementById('teamName').value = settings.teamName || '';
+}
+
+/* ──────────────── UI HELPERS ──────────────── */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function switchTab(panelId, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+  btn.classList.add('active');
+  if (panelId === 'tabSchedule') renderSchedulePreview();
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ──────────────── INIT ──────────────── */
+load();
+setInterval(updateCountdown, 1000);
+updateCountdown();
+</script>
+</body>
+</html>
