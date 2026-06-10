@@ -105,7 +105,7 @@
     margin-bottom: 1rem;
   }
 
-  /* WEEK ACCORDION BOXES */
+  /* ACCORDION BOXES */
   .weeks-container {
     max-width: 720px;
     margin: 0 auto;
@@ -506,7 +506,7 @@
         </div>
         <div class="form-group" style="margin-bottom:1rem">
           <label>Title</label>
-          <input type="text" id="itemTitle" placeholder="e.g. Complete phase 1 layout...">
+          <input type="text" id="itemTitle" placeholder="e.g. Complete layout architecture...">
         </div>
         <div class="form-group" style="margin-bottom:1.25rem">
           <label>Description (optional)</label>
@@ -593,7 +593,7 @@
 </div>
 
 <script>
-/* ── LOCALSTORAGE FALLBACK ADAPTER ── */
+/* ── STORAGE BACKEND INTEGRATION ── */
 if (!window.storage) {
   window.storage = {
     get: async (key) => { const v = localStorage.getItem(key); return v ? { value: v } : null; },
@@ -601,9 +601,8 @@ if (!window.storage) {
   };
 }
 
-/* ──────────────── DATA STRUCTURES ──────────────── */
 const KEY_ITEMS    = 'wq_items_v2';
-const KEY_SETTINGS = 'wq_settings_v3'; // Incremented schema to avoid mixing default setups
+const KEY_SETTINGS = 'wq_settings_v3';
 const KEY_PW       = 'wq_pw_v2';
 const DEFAULT_PW   = 'admin123';
 
@@ -628,7 +627,7 @@ function getWeekLabel(id) {
   return id;
 }
 
-/* ──────────────── TIME MANAGEMENT ──────────────── */
+/* ── TIME ENGINE ── */
 function getWeekNum(d) {
   const date = new Date(d);
   date.setHours(0,0,0,0);
@@ -647,14 +646,12 @@ function getSystemWeekId(weekId) {
 
 function isWeekBoxRevealed(weekId) {
   if (weekId === 'week1') return true; 
-  
   const now = new Date();
   const targetWeekNum = getSystemWeekId(weekId);
   const currentWeekNum = getWeekNum(now);
 
   if (currentWeekNum > targetWeekNum) return true;
   if (currentWeekNum < targetWeekNum) return false;
-
   return now.getDay() >= Number(settings.revealDay);
 }
 
@@ -662,7 +659,6 @@ function getNextRevealTime(weekId) {
   const now = new Date();
   const targetWeekNum = getSystemWeekId(weekId);
   const currentWeekNum = getWeekNum(now);
-  
   const targetDate = new Date(now);
   const weekDiff = targetWeekNum - currentWeekNum;
   
@@ -675,7 +671,7 @@ function getNextRevealTime(weekId) {
   return targetDate;
 }
 
-/* ──────────────── ENGINE CONTROLLERS ──────────────── */
+/* ── ENGINE CONTROLLERS ── */
 async function load() {
   const [ir, sr, pr] = await Promise.all([
     window.storage.get(KEY_ITEMS),
@@ -702,16 +698,16 @@ async function saveSetting(key, val) {
 }
 
 function updateDropdownOptionsLabels() {
-  document.getElementById('opt-week1').textContent = getWeekLabel('week1');
-  document.getElementById('opt-week2').textContent = getWeekLabel('week2');
-  document.getElementById('opt-week3').textContent = getWeekLabel('week3');
-  document.getElementById('opt-week4').textContent = getWeekLabel('week4');
+  ['week1', 'week2', 'week3', 'week4'].forEach((w, idx) => {
+    const opt = document.getElementById(`opt-${w}`);
+    if (opt) opt.textContent = getWeekLabel(w);
+  });
 }
 
-/* ──────────────── UI COMPONENT BUILDER ──────────────── */
+/* ── INTERFACE COMPONENT BUILDER ── */
 function renderTeamAccordion() {
   const container = document.getElementById('weeksAccordionContainer');
-  
+  if (!container) return;
   const openBoxes = [];
   document.querySelectorAll('.week-box.open').forEach(el => openBoxes.push(el.dataset.id));
 
@@ -745,7 +741,7 @@ function renderTeamAccordion() {
 
 function toggleWeekBox(id) {
   const el = document.getElementById(`box-${id}`);
-  el.classList.toggle('open');
+  if (el) el.classList.toggle('open');
   updateBoxContents();
 }
 
@@ -753,18 +749,14 @@ function updateBoxContents() {
   DASHBOARD_WEEKS.forEach(wkId => {
     const contentEl = document.getElementById(`content-${wkId}`);
     const boxEl = document.getElementById(`box-${wkId}`);
-    if (!contentEl || !boxEl.classList.contains('open')) return;
+    if (!contentEl || !boxEl || !boxEl.classList.contains('open')) return;
 
     const revealed = isWeekBoxRevealed(wkId);
 
     if (!revealed) {
       const target = getNextRevealTime(wkId);
       const diff = target - new Date();
-
-      if (diff <= 0) {
-        renderTeamAccordion();
-        return;
-      }
+      if (diff <= 0) { renderTeamAccordion(); return; }
 
       const d = Math.floor(diff / 86400000);
       const h = Math.floor((diff % 86400000) / 3600000);
@@ -828,16 +820,16 @@ function updateBoxContents() {
           </div>`;
       });
     }
-
     contentEl.innerHTML = innerHtml;
   });
 }
 
 function pad(n) { return String(n).padStart(2,'0'); }
 
-/* ──────────────── ADMINISTRATIVE PANEL ──────────────── */
+/* ── ADMIN MANAGEMENT LISTS ── */
 function renderItemList() {
   const el = document.getElementById('itemList');
+  if (!el) return;
   if (!items.length) {
     el.innerHTML = '<div class="empty-state">No tasks created yet.</div>';
     return;
@@ -917,7 +909,7 @@ function resetForm() {
   document.getElementById('cancelEditBtn').style.display = 'none';
 }
 
-/* ──────────────── GATEWAY CONTROLERS ──────────────── */
+/* ── ROUTING & ACCESS CONTROL ── */
 function showAdminGate() {
   if (adminLoggedIn) { showPage('adminPage'); return; }
   showPage('loginPage');
@@ -936,7 +928,6 @@ async function doLogin() {
     document.getElementById('loginError').style.display = 'none';
     showPage('adminPage');
     
-    // Sync setup layout fields
     document.getElementById('teamName').value = settings.teamName || '';
     document.getElementById('revealDay').value = settings.revealDay;
     document.getElementById('titleWeek1').value = settings.nameWeek1 || '';
@@ -986,7 +977,6 @@ function toast(m) {
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-/* ──────────────── RUNNERS ──────────────── */
 load();
 setInterval(updateBoxContents, 1000);
 </script>
