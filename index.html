@@ -412,7 +412,7 @@
   .settings-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 0; border-bottom: 1px solid var(--border); }
   .settings-row:last-child { border-bottom: none; }
   .settings-label { font-size: 0.9rem; font-weight: 500; }
-  .settings-desc { font-size: 0.8rem; color: var(--muted); }
+  .settings-desc { font-size: 0.8rem; color: var(--muted); max-width: 60%; }
 
   .toast {
     position: fixed; bottom: 2rem; right: 2rem; background: var(--surface2); border: 1px solid var(--border2);
@@ -442,20 +442,16 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- TEAM PAGE -->
 <div class="page active" id="teamPage">
   <div class="team-hero">
     <h1 id="heroTitle">Our Team Dashboard</h1>
-    <p id="heroSubtitle">Click any week box below to see your assigned items or active release schedules.</p>
+    <p id="heroSubtitle">Click any box below to see your assigned items or active release schedules.</p>
   </div>
 
-  <!-- THE 4 WEEKS GRID CONTAINER -->
   <div class="weeks-container" id="weeksAccordionContainer">
-    <!-- Generation handled dynamically in JS -->
-  </div>
+    </div>
 </div>
 
-<!-- ADMIN GATE -->
 <div class="page" id="loginPage">
   <div class="login-wrap">
     <div class="login-card">
@@ -474,7 +470,6 @@
   </div>
 </div>
 
-<!-- ADMIN PANEL -->
 <div class="page" id="adminPage">
   <div class="admin-wrap">
     <div class="admin-header">
@@ -487,7 +482,6 @@
       <button class="tab" onclick="switchTab('tabSettings', this)">Settings</button>
     </div>
 
-    <!-- TAB: Items -->
     <div class="panel active" id="tabItems">
       <div class="form-card">
         <h3 id="formTitle">➕ Add New Item</h3>
@@ -503,16 +497,16 @@
           <div class="form-group">
             <label>Assigned Box</label>
             <select id="itemWeek">
-              <option value="week1">Week 1 Box</option>
-              <option value="week2">Week 2 Box</option>
-              <option value="week3">Week 3 Box</option>
-              <option value="week4">Week 4 Box</option>
+              <option value="week1" id="opt-week1">Box 1</option>
+              <option value="week2" id="opt-week2">Box 2</option>
+              <option value="week3" id="opt-week3">Box 3</option>
+              <option value="week4" id="opt-week4">Box 4</option>
             </select>
           </div>
         </div>
         <div class="form-group" style="margin-bottom:1rem">
           <label>Title</label>
-          <input type="text" id="itemTitle" placeholder="e.g. Complete module 1 assessment...">
+          <input type="text" id="itemTitle" placeholder="e.g. Complete phase 1 layout...">
         </div>
         <div class="form-group" style="margin-bottom:1.25rem">
           <label>Description (optional)</label>
@@ -528,7 +522,6 @@
       <div class="item-list" id="itemList"></div>
     </div>
 
-    <!-- TAB: Settings -->
     <div class="panel" id="tabSettings">
       <div class="form-card">
         <h3>⚙️ Customization & Release Schedules</h3>
@@ -553,6 +546,31 @@
             <option value="5">Friday</option>
             <option value="6">Saturday</option>
           </select>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3>📦 Rename Dashboard Boxes</h3>
+        <p style="color:var(--muted); font-size:12px; margin-bottom:1rem;">Give your 4 dashboard segments custom names:</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Box 1 Name</label>
+            <input type="text" id="titleWeek1" oninput="saveSetting('nameWeek1', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Box 2 Name</label>
+            <input type="text" id="titleWeek2" oninput="saveSetting('nameWeek2', this.value)">
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:0.5rem;">
+          <div class="form-group">
+            <label>Box 3 Name</label>
+            <input type="text" id="titleWeek3" oninput="saveSetting('nameWeek3', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Box 4 Name</label>
+            <input type="text" id="titleWeek4" oninput="saveSetting('nameWeek4', this.value)">
+          </div>
         </div>
       </div>
 
@@ -585,23 +603,32 @@ if (!window.storage) {
 
 /* ──────────────── DATA STRUCTURES ──────────────── */
 const KEY_ITEMS    = 'wq_items_v2';
-const KEY_SETTINGS = 'wq_settings_v2';
+const KEY_SETTINGS = 'wq_settings_v3'; // Incremented schema to avoid mixing default setups
 const KEY_PW       = 'wq_pw_v2';
 const DEFAULT_PW   = 'admin123';
 
 let items = [];
-let settings = { revealDay: 5, teamName: 'Our Team' };
+let settings = { 
+  revealDay: 5, 
+  teamName: 'Our Team',
+  nameWeek1: 'Week 1 Tasks',
+  nameWeek2: 'Week 2 Tasks',
+  nameWeek3: 'Week 3 Tasks',
+  nameWeek4: 'Week 4 Tasks'
+};
 let adminLoggedIn = false;
 
-// We manage a strict 4-week grid array matching user configurations
 const DASHBOARD_WEEKS = ['week1', 'week2', 'week3', 'week4'];
 
-// Helper maps to figure out relative calendars dynamically
 function getWeekLabel(id) {
-  return { week1: 'Week 1 Tasks', week2: 'Week 2 Tasks', week3: 'Week 3 Tasks', week4: 'Week 4 Tasks' }[id];
+  if (id === 'week1') return settings.nameWeek1 || 'Week 1 Tasks';
+  if (id === 'week2') return settings.nameWeek2 || 'Week 2 Tasks';
+  if (id === 'week3') return settings.nameWeek3 || 'Week 3 Tasks';
+  if (id === 'week4') return settings.nameWeek4 || 'Week 4 Tasks';
+  return id;
 }
 
-/* ──────────────── CRITICAL TIME MANAGEMENT ──────────────── */
+/* ──────────────── TIME MANAGEMENT ──────────────── */
 function getWeekNum(d) {
   const date = new Date(d);
   date.setHours(0,0,0,0);
@@ -610,7 +637,6 @@ function getWeekNum(d) {
   return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
 }
 
-// Map real system dates to our virtual 4-week blocks 
 function getSystemWeekId(weekId) {
   const currentRealWk = getWeekNum(new Date());
   if (weekId === 'week1') return currentRealWk;
@@ -620,7 +646,7 @@ function getSystemWeekId(weekId) {
 }
 
 function isWeekBoxRevealed(weekId) {
-  if (weekId === 'week1') return true; // Week 1 dashboard is always completely unlocked
+  if (weekId === 'week1') return true; 
   
   const now = new Date();
   const targetWeekNum = getSystemWeekId(weekId);
@@ -629,7 +655,6 @@ function isWeekBoxRevealed(weekId) {
   if (currentWeekNum > targetWeekNum) return true;
   if (currentWeekNum < targetWeekNum) return false;
 
-  // If we match current calendar context, parse settings reveal validation flags
   return now.getDay() >= Number(settings.revealDay);
 }
 
@@ -639,7 +664,6 @@ function getNextRevealTime(weekId) {
   const currentWeekNum = getWeekNum(now);
   
   const targetDate = new Date(now);
-  // Calculate raw multi-week span offset steps
   const weekDiff = targetWeekNum - currentWeekNum;
   
   targetDate.setDate(now.getDate() + (weekDiff * 7));
@@ -663,22 +687,31 @@ async function load() {
   if (!pr) await window.storage.set(KEY_PW, DEFAULT_PW);
   
   document.getElementById('heroTitle').textContent = `${settings.teamName || 'Our Team'} Dashboard`;
+  updateDropdownOptionsLabels();
   renderTeamAccordion();
 }
 
 async function saveItems() { await window.storage.set(KEY_ITEMS, JSON.stringify(items)); }
+
 async function saveSetting(key, val) {
   settings[key] = isNaN(val) ? val : Number(val);
   await window.storage.set(KEY_SETTINGS, JSON.stringify(settings));
   document.getElementById('heroTitle').textContent = `${settings.teamName || 'Our Team'} Dashboard`;
+  updateDropdownOptionsLabels();
   renderTeamAccordion();
+}
+
+function updateDropdownOptionsLabels() {
+  document.getElementById('opt-week1').textContent = getWeekLabel('week1');
+  document.getElementById('opt-week2').textContent = getWeekLabel('week2');
+  document.getElementById('opt-week3').textContent = getWeekLabel('week3');
+  document.getElementById('opt-week4').textContent = getWeekLabel('week4');
 }
 
 /* ──────────────── UI COMPONENT BUILDER ──────────────── */
 function renderTeamAccordion() {
   const container = document.getElementById('weeksAccordionContainer');
   
-  // Track open boxes before rerendering so user experience is smooth
   const openBoxes = [];
   document.querySelectorAll('.week-box.open').forEach(el => openBoxes.push(el.dataset.id));
 
@@ -696,14 +729,12 @@ function renderTeamAccordion() {
       <div class="week-box ${isOpen}" id="box-${wkId}" data-id="${wkId}">
         <div class="week-box-header" onclick="toggleWeekBox('${wkId}')">
           <div class="week-box-title">
-            <h3>${getWeekLabel(wkId)}</h3>
+            <h3>${esc(getWeekLabel(wkId))}</h3>
             <span class="status-indicator ${statusClass}">${statusText}</span>
           </div>
           <div class="arrow-icon">▼</div>
         </div>
-        <div class="week-box-content" id="content-${wkId}">
-          <!-- Dynamic tasks or running countdown targets injected here -->
-        </div>
+        <div class="week-box-content" id="content-${wkId}"></div>
       </div>
     `;
   });
@@ -726,7 +757,6 @@ function updateBoxContents() {
 
     const revealed = isWeekBoxRevealed(wkId);
 
-    // CASE A: Week is Locked -> Calculate and render the running active Countdown
     if (!revealed) {
       const target = getNextRevealTime(wkId);
       const diff = target - new Date();
@@ -742,7 +772,7 @@ function updateBoxContents() {
       const s = Math.floor((diff % 60000) / 1000);
 
       contentEl.innerHTML = `
-        <div class="countdown-notice">🕒 This segment unlocks in:</div>
+        <div class="countdown-notice">🕒 Unlocks in:</div>
         <div class="countdown-bar">
           <div class="countdown-unit"><div class="countdown-num">${pad(d)}</div><div class="countdown-label">Days</div></div>
           <div class="countdown-sep">:</div>
@@ -756,13 +786,12 @@ function updateBoxContents() {
       return;
     }
 
-    // CASE B: Week is Unlocked -> Render the list of tasks inside
     const weekItems = items.filter(i => i.week === wkId);
     if (weekItems.length === 0) {
       contentEl.innerHTML = `
         <div class="locked-state-box">
           <div class="lock-icon-box">📭</div>
-          <h4>Empty Box</h4>
+          <h4>Empty Segment</h4>
           <p>No quests or questions scheduled yet.</p>
         </div>`;
       return;
@@ -787,7 +816,7 @@ function updateBoxContents() {
     }
 
     if (questions.length) {
-      innerHtml += `<p class="section-title">💬 Weekly Questions</p>`;
+      innerHtml += `<p class="section-title">💬 Questions</p>`;
       questions.forEach(q => {
         innerHtml += `
           <div class="quest-card">
@@ -806,7 +835,7 @@ function updateBoxContents() {
 
 function pad(n) { return String(n).padStart(2,'0'); }
 
-/* ──────────────── ADMINISTRATIVE PANEL METHODS ──────────────── */
+/* ──────────────── ADMINISTRATIVE PANEL ──────────────── */
 function renderItemList() {
   const el = document.getElementById('itemList');
   if (!items.length) {
@@ -820,7 +849,7 @@ function renderItemList() {
         ${item.desc ? `<div class="item-row-desc">${esc(item.desc)}</div>` : ''}
         <div class="item-row-meta">
           <span class="badge ${item.type==='quest'?'badge-type-quest':'badge-type-question'}">${item.type==='quest'?'🗡 Quest':'💬 Question'}</span>
-          <span class="badge badge-week">${getWeekLabel(item.week)}</span>
+          <span class="badge badge-week">${esc(getWeekLabel(item.week))}</span>
         </div>
       </div>
       <div class="item-actions">
@@ -855,7 +884,7 @@ function saveItem() {
   renderItemList();
   renderTeamAccordion();
   resetForm();
-  toast('Changes Saved Successfully!');
+  toast('Changes Saved!');
 }
 
 function editItem(id) {
@@ -866,7 +895,7 @@ function editItem(id) {
   document.getElementById('itemWeek').value = item.week;
   document.getElementById('itemTitle').value = item.title;
   document.getElementById('itemDesc').value = item.desc || '';
-  document.getElementById('formTitle').textContent = '✏️ Edit Dashboard Item';
+  document.getElementById('formTitle').textContent = '✏️ Edit Item';
   document.getElementById('cancelEditBtn').style.display = 'inline-flex';
   document.getElementById('itemTitle').focus();
 }
@@ -888,7 +917,7 @@ function resetForm() {
   document.getElementById('cancelEditBtn').style.display = 'none';
 }
 
-/* ──────────────── GATEWAY & GLOBAL SYSTEM HELPERS ──────────────── */
+/* ──────────────── GATEWAY CONTROLERS ──────────────── */
 function showAdminGate() {
   if (adminLoggedIn) { showPage('adminPage'); return; }
   showPage('loginPage');
@@ -906,8 +935,16 @@ async function doLogin() {
     document.getElementById('loginInput').value = '';
     document.getElementById('loginError').style.display = 'none';
     showPage('adminPage');
+    
+    // Sync setup layout fields
     document.getElementById('teamName').value = settings.teamName || '';
     document.getElementById('revealDay').value = settings.revealDay;
+    document.getElementById('titleWeek1').value = settings.nameWeek1 || '';
+    document.getElementById('titleWeek2').value = settings.nameWeek2 || '';
+    document.getElementById('titleWeek3').value = settings.nameWeek3 || '';
+    document.getElementById('titleWeek4').value = settings.nameWeek4 || '';
+    
+    updateDropdownOptionsLabels();
     renderItemList();
   } else {
     document.getElementById('loginError').style.display = 'block';
@@ -922,7 +959,7 @@ function logout() {
 async function changePassword() {
   const n = document.getElementById('newPw').value;
   const c = document.getElementById('confirmPw').value;
-  if (!n || n !== c) { toast('Error adjusting passwords.'); return; }
+  if (!n || n !== c) { toast('Passwords do not match.'); return; }
   await window.storage.set(KEY_PW, n);
   document.getElementById('newPw').value = '';
   document.getElementById('confirmPw').value = '';
@@ -951,7 +988,6 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 
 /* ──────────────── RUNNERS ──────────────── */
 load();
-// Keeps countdown modules updating fluidly every single second
 setInterval(updateBoxContents, 1000);
 </script>
 </body>
